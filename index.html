@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Menu</title>  
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .menu-item { 
+            margin-bottom: 15px; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            background-color: #fff;
+        }
+        .input-group { 
+            margin-top: 10px; 
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #totalPrice {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Menu</h1>
+    <div id="menu"></div>
+    
+    <button id="orderButton">Order</button>
+    
+    <h2>Total: <span id="totalPrice">$0</span></h2>
+    
+    <script>
+        var socket = io.connect('http://localhost:8080');
+
+        socket.on('menu', function (menu) {
+            var menuDiv = document.getElementById('menu');
+            
+            menu.forEach(function (item, index) {
+                var menuItemDiv = document.createElement('div');
+                menuItemDiv.classList.add('menu-item');
+                
+                menuItemDiv.innerHTML = `
+                    <strong>${item.item}</strong> - $${item.price.toFixed(2)}
+                    <div class="input-group">
+                        <label for="quantity-${index}">Quantity:</label>
+                        <input type="number" id="quantity-${index}" min="0" value="0" data-price="${item.price}">
+                    </div>
+                `;
+                
+                menuDiv.appendChild(menuItemDiv);
+            });
+        });
+
+        document.getElementById('orderButton').addEventListener('click', function () {
+            var total = 0; 
+            
+            var inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(function (input) {
+                var quantity = parseInt(input.value, 10); 
+                var price = parseFloat(input.getAttribute('data-price')); 
+
+                if (quantity > 0) {
+                    total += quantity * price; 
+                }
+            });
+            
+            document.getElementById('totalPrice').innerHTML = `$${total.toFixed(2)}`;  
+        });
+    </script>
+</body>
+</html>
